@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 293091256, guid: 7b3fa964f65ea784fb63e20c2d537911, type: 3}
   m_Name: GameTimer
   m_EditorClassIdentifier: 
+  DeltaTimeMultiplier: 50
   Multiplier: 1

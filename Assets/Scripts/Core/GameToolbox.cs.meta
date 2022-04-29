@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4047bc2bdcb5f67448f7c019d04260b2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - UITimer: {fileID: 11400000, guid: 6c13812a7f75ceb469fb302afc3d9494, type: 2}
+  - GameTimer: {fileID: 11400000, guid: 2f88c8a50efcef34994c251b3afa0a07, type: 2}
+  - MainMachinery: {fileID: 11400000, guid: 6d7e97e2e7c3654449552bea58331f08, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
