@@ -134,36 +134,34 @@ public class DreamCharacterController : MonoBehaviour
     {
         while (isActiveAndEnabled)
         {
-            while (IsJumping)
+            while (IsJumping || FrameVars.Get(raycastDef))
             {
                 yield return TimeYields.WaitOneFrameX;
-            } 
-
-            if (!FrameVars.Get(raycastDef))
-            {
-                yield return transform.GetAccessor()
-                    .Position.Y
-                    .Decrease(1.5f)
-                    .Over(0.35f)
-                    .UsingTimer(Toolbox.GameTimer.Timer)
-                    .BreakIf(() => FrameVars.Get(raycastDef), false)
-                    .Easing(EasingYields.EasingFunction.QuadraticEaseIn)
-                    .Build();
-
-                while (!FrameVars.Get(raycastDef))
-                {
-                    var updatedTime = (float)Toolbox.GameTimer.Timer.UpdatedTimeInMilliseconds * Constants.FrameUpdateMultiplier;
-                    transform.position = new Vector3(transform.position.x, transform.position.y - 1.75f * updatedTime, transform.position.z);
-                    yield return TimeYields.WaitOneFrameX;
-                }
             }
 
-            yield return TimeYields.WaitOneFrameX;
+            Animator.SetFalling(true);
+            yield return transform.GetAccessor()
+                .Position.Y
+                .Decrease(1.5f)
+                .Over(0.35f)
+                .UsingTimer(Toolbox.GameTimer.Timer)
+                .BreakIf(() => FrameVars.Get(raycastDef) || IsJumping, false)
+                .Easing(EasingYields.EasingFunction.QuadraticEaseIn)
+                .Build();
+
+            while (!FrameVars.Get(raycastDef) && !IsJumping)
+            {
+                var updatedTime = (float)Toolbox.GameTimer.Timer.UpdatedTimeInMilliseconds * Constants.FrameUpdateMultiplier;
+                transform.position = new Vector3(transform.position.x, transform.position.y - 1.75f * updatedTime, transform.position.z);
+                yield return TimeYields.WaitOneFrameX;
+            }
+            Animator.SetFalling(false);
         }
     }
 
     private IEnumerable<IEnumerable<Action>> Jump()
     {
+        Animator.SetJumping(true);
         IsJumping = true;
         yield return transform.GetAccessor()
             .Position.Y
@@ -174,6 +172,7 @@ public class DreamCharacterController : MonoBehaviour
             .Build();
         _refYSpeed = 0f;
         IsJumping = false;
+        Animator.SetJumping(false);
     }
 
     private IEnumerable<IEnumerable<Action>> HandleJumping(FrameVariableDefinition<RaycastHit2D> raycastDef)

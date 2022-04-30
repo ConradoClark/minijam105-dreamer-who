@@ -14,4 +14,14 @@ public class DreamCharacterAnimator : MonoBehaviour
     {
         Animator.SetBool("Walking", walking);
     }
+
+    public void SetFalling(bool falling)
+    {
+        Animator.SetBool("Falling", falling);
+    }
+
+    public void SetJumping(bool jumping)
+    {
+        Animator.SetBool("Jumping", jumping);
+    }
 }
