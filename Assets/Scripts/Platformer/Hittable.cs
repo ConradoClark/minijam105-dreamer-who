@@ -4,21 +4,27 @@ using System.Collections.Generic;
 using System.Linq;
 using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
+using Licht.Interfaces.Events;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class Hittable : MonoBehaviour
 {
+    public bool TakesDamage;
     public bool FlashOnHit;
     public Flash Flash;
     public GameToolbox Toolbox;
     public EffectToolbox Effects;
+    public Collider2D Collider;
+    public Transform Source;
 
     public HitEventType[] HitTypes;
+    private IEventPublisher<HitEvents, DamageEventArgs> _damageEventPublisher;
 
     private void OnEnable()
     {
         this.ObserveEvent<HitEvents, HitEventArgs>(HitEvents.OnHit, OnEvent);
+        _damageEventPublisher = this.RegisterAsEventPublisher<HitEvents, DamageEventArgs>();
     }
 
     private void OnDisable()
@@ -28,10 +34,19 @@ public class Hittable : MonoBehaviour
 
     private void OnEvent(HitEventArgs obj)
     {
-        if (FlashOnHit && HitTypes.Contains(obj.HitType))
+        if (!FlashOnHit || !HitTypes.Contains(obj.HitType) || obj.Hit.collider != Collider) return;
+        
+        Toolbox.MainMachinery.Machinery.AddBasicMachine(
+            Flash.Activate().AsCoroutine().Combine(SpawnStars(obj.Hit).AsCoroutine()));
+
+        if (TakesDamage)
         {
-            Toolbox.MainMachinery.Machinery.AddBasicMachine(
-                    Flash.Activate().AsCoroutine().Combine(SpawnStars(obj.Hit).AsCoroutine()));
+            _damageEventPublisher.PublishEvent(HitEvents.OnDamage, new DamageEventArgs
+            {
+                Hit = obj.Hit,
+                HitType = obj.HitType,
+                Source = Source
+            });
         }
     }
 

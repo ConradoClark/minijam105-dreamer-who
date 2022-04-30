@@ -34,6 +34,11 @@ public class DreamCharacterController : MonoBehaviour
         _hitEventPublisher = this.RegisterAsEventPublisher<HitEvents, HitEventArgs>();
     }
 
+    private void OnDisable()
+    {
+        this.UnregisterAsEventPublisher<HitEvents, HitEventArgs>();
+    }
+
     private IEnumerable<IEnumerable<Action>> HandleController()
     {
         while (isActiveAndEnabled)

@@ -4,7 +4,8 @@ using UnityEngine;
 
 public enum HitEvents
 {
-    OnHit
+    OnHit,
+    OnDamage,
 }
 
 public enum HitEventType
@@ -17,4 +18,9 @@ public class HitEventArgs
 {
     public HitEventType HitType;
     public RaycastHit2D Hit;
+}
+
+public class DamageEventArgs : HitEventArgs
+{
+    public Component Source;
 }
