@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using Licht.Impl.Orchestration;
 using Licht.Unity.Builders;
@@ -11,11 +12,15 @@ public class DreamCharacterController : MonoBehaviour
 {
     public GameToolbox Toolbox;
     public float Speed;
+    public DreamCharacterCollisionDetector CollisionDetector;
+    public FrameVariablesUpdater FrameVars;
 
     private PlayerInput _input;
-    private float _refSpeed;
+    private float _refXSpeed;
+    private float _refYSpeed;
 
     public bool CanMove { get; private set; }
+    public bool IsJumping { get; private set; }
 
     private void OnEnable()
     {
@@ -28,39 +33,50 @@ public class DreamCharacterController : MonoBehaviour
         while (isActiveAndEnabled)
         {
             yield return HandleMovement().AsCoroutine()
-                .Combine(HandleJumping().AsCoroutine());
+                .Combine(HandleVerticals().AsCoroutine());
 
             yield return TimeYields.WaitOneFrameX;
         }
     }
 
-    private IEnumerable<IEnumerable<Action>> Move()
+    private IEnumerable<IEnumerable<Action>> Move(float speed)
     {
         var updatedTime = (float)Toolbox.GameTimer.Timer.UpdatedTimeInMilliseconds * Constants.FrameUpdateMultiplier;
-        transform.position = transform.position += new Vector3(_refSpeed, 0) * updatedTime;
+
+        var hit = CollisionDetector.HandleCollision(DreamCharacterCollisionDetector.CharacterColliders.Horizontal, new Vector2(speed, 0));
+
+        if (hit == default)
+        {
+            transform.position += new Vector3(speed, 0) * updatedTime;
+        }
+        else if (hit.distance > 0.01f)
+        {
+            transform.position = new Vector2(hit.point.x, transform.position.y) - new Vector2(CollisionDetector.HorizontalCollider.bounds.extents.x * Mathf.Sign(speed), 0);
+        }
+
         yield return TimeYields.WaitOneFrameX;
     }
 
     private IEnumerable<Action> MovementStart(InputAction moveAction)
     {
-         return new LerpBuilder(f => _refSpeed = f, () => _refSpeed)
-            .SetTarget(Speed * moveAction.ReadValue<float>())
-            .Over(0.15f)
-            .UsingTimer(Toolbox.GameTimer.Timer)
-            .BreakIf(() => !_input.actions[Constants.Actions.Move].IsPressed())
-            .Easing(EasingYields.EasingFunction.QuadraticEaseIn)
-            .Build();
+        return new LerpBuilder(f => _refXSpeed = f, () => _refXSpeed)
+           .SetTarget(Speed * moveAction.ReadValue<float>())
+           .Over(0.15f)
+           .UsingTimer(Toolbox.GameTimer.Timer)
+           .BreakIf(() => !IsMovingPressed(), false)
+           .Easing(EasingYields.EasingFunction.QuadraticEaseIn)
+           .Build();
     }
 
     private IEnumerable<Action> MovementEnd()
     {
-         return new LerpBuilder(f => _refSpeed = f, () => _refSpeed)
-            .SetTarget(0f)
-            .Over(Mathf.Abs(_refSpeed) * 0.25f)
-            .UsingTimer(Toolbox.GameTimer.Timer)
-            .BreakIf(() => _input.actions[Constants.Actions.Move].IsPressed())
-            .Easing(EasingYields.EasingFunction.QuadraticEaseOut)
-            .Build();
+        return new LerpBuilder(f => _refXSpeed = f, () => _refXSpeed)
+           .SetTarget(0f)
+           .Over(Mathf.Abs(_refXSpeed) * 0.25f)
+           .UsingTimer(Toolbox.GameTimer.Timer)
+           .BreakIf(IsMovingPressed, false)
+           .Easing(EasingYields.EasingFunction.QuadraticEaseOut)
+           .Build();
     }
 
 
@@ -69,21 +85,21 @@ public class DreamCharacterController : MonoBehaviour
         var moveAction = _input.actions[Constants.Actions.Move];
         while (isActiveAndEnabled)
         {
-            if (moveAction.IsPressed())
+            if (IsMovingPressed())
             {
                 foreach (var _ in MovementStart(moveAction))
                 {
-                    yield return Move().AsCoroutine();
+                    yield return Move(_refXSpeed).AsCoroutine();
                 }
-                
-                while (moveAction.IsPressed())
+
+                while (IsMovingPressed())
                 {
-                    yield return Move().AsCoroutine();
+                    yield return Move(Speed * moveAction.ReadValue<float>()).AsCoroutine();
                 }
 
                 foreach (var _ in MovementEnd())
                 {
-                    yield return Move().AsCoroutine();
+                    yield return Move(_refXSpeed).AsCoroutine();
                 }
             }
             else
@@ -93,8 +109,93 @@ public class DreamCharacterController : MonoBehaviour
         }
     }
 
-    private IEnumerable<IEnumerable<Action>> HandleJumping()
+    private bool IsMovingPressed()
     {
-        yield break;
+        var moveAction = _input.actions[Constants.Actions.Move];
+        return moveAction.IsPressed() && Mathf.Abs(moveAction.ReadValue<float>()) > 0f;
+    }
+
+    private IEnumerable<IEnumerable<Action>> HandleVerticals()
+    {
+        var hit = new FrameVariableDefinition<RaycastHit2D>("VerticalCollision",
+            () => CollisionDetector.HandleCollision(DreamCharacterCollisionDetector.CharacterColliders.Vertical, new Vector2(0, -0.1f), 0.2f));
+
+        yield return HandleGravity(hit).AsCoroutine().Combine(HandleJumping(hit).AsCoroutine());
+    }
+
+    private IEnumerable<IEnumerable<Action>> HandleGravity(FrameVariableDefinition<RaycastHit2D> raycastDef)
+    {
+        while (isActiveAndEnabled)
+        {
+            while (IsJumping)
+            {
+                yield return TimeYields.WaitOneFrameX;
+            } 
+
+            if (!FrameVars.Get(raycastDef))
+            {
+                yield return transform.GetAccessor()
+                    .Position.Y
+                    .Decrease(1.5f)
+                    .Over(0.35f)
+                    .UsingTimer(Toolbox.GameTimer.Timer)
+                    .BreakIf(() => FrameVars.Get(raycastDef), false)
+                    .Easing(EasingYields.EasingFunction.QuadraticEaseIn)
+                    .Build();
+
+                while (!FrameVars.Get(raycastDef))
+                {
+                    var updatedTime = (float)Toolbox.GameTimer.Timer.UpdatedTimeInMilliseconds * Constants.FrameUpdateMultiplier;
+                    transform.position = new Vector3(transform.position.x, transform.position.y - 1.75f * updatedTime, transform.position.z);
+                    yield return TimeYields.WaitOneFrameX;
+                }
+            }
+
+            yield return TimeYields.WaitOneFrameX;
+        }
+    }
+
+    private IEnumerable<IEnumerable<Action>> Jump()
+    {
+        IsJumping = true;
+        yield return transform.GetAccessor()
+            .Position.Y
+            .Increase(1.5f)
+            .Over(0.35f)
+            .UsingTimer(Toolbox.GameTimer.Timer)
+            .Easing(EasingYields.EasingFunction.QuadraticEaseOut)
+            .Build();
+        _refYSpeed = 0f;
+        IsJumping = false;
+    }
+
+    private IEnumerable<IEnumerable<Action>> HandleJumping(FrameVariableDefinition<RaycastHit2D> raycastDef)
+    {
+        var jumpAction = _input.actions[Constants.Actions.Jump];
+        while (isActiveAndEnabled)
+        {
+            if (FrameVars.Get(raycastDef))
+            {
+                if (jumpAction.WasPerformedThisFrame())
+                {
+                    yield return Jump().AsCoroutine();
+                }
+                else
+                {
+                    yield return TimeYields.WaitOneFrameX;
+                }
+            }
+
+            // Coyote time
+            if (TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.1).Any(_ => jumpAction.WasPerformedThisFrame()))
+            {
+                yield return Jump().AsCoroutine();
+            }
+
+            while (!FrameVars.Get(raycastDef))
+            {
+                yield return TimeYields.WaitOneFrameX;
+            }
+        }
     }
 }
