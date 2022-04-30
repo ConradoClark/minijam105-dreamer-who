@@ -14,6 +14,7 @@ public class DreamCharacterController : MonoBehaviour
     public float Speed;
     public DreamCharacterCollisionDetector CollisionDetector;
     public FrameVariablesUpdater FrameVars;
+    public DreamCharacterAnimator Animator;
 
     private PlayerInput _input;
     private float _refXSpeed;
@@ -87,6 +88,9 @@ public class DreamCharacterController : MonoBehaviour
         {
             if (IsMovingPressed())
             {
+                Animator.SetWalking(true);
+                var axis = moveAction.ReadValue<float>();
+                Animator.Face(axis);
                 foreach (var _ in MovementStart(moveAction))
                 {
                     yield return Move(_refXSpeed).AsCoroutine();
@@ -94,7 +98,9 @@ public class DreamCharacterController : MonoBehaviour
 
                 while (IsMovingPressed())
                 {
-                    yield return Move(Speed * moveAction.ReadValue<float>()).AsCoroutine();
+                    axis = moveAction.ReadValue<float>();
+                    Animator.Face(axis);
+                    yield return Move(Speed * axis).AsCoroutine();
                 }
 
                 foreach (var _ in MovementEnd())
@@ -104,6 +110,7 @@ public class DreamCharacterController : MonoBehaviour
             }
             else
             {
+                Animator.SetWalking(false);
                 yield return TimeYields.WaitOneFrameX;
             }
         }
@@ -174,6 +181,26 @@ public class DreamCharacterController : MonoBehaviour
         var jumpAction = _input.actions[Constants.Actions.Jump];
         while (isActiveAndEnabled)
         {
+            while (!FrameVars.Get(raycastDef))
+            {
+                // Buffer input
+                if (jumpAction.WasPerformedThisFrame())
+                {
+                    foreach (var _ in TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.15))
+                    {
+                        if (FrameVars.Get(raycastDef))
+                        {
+                            yield return Jump().AsCoroutine();
+                            break;
+                        }
+
+                        yield return TimeYields.WaitOneFrameX;
+                    }
+                }
+
+                yield return TimeYields.WaitOneFrameX;
+            }
+
             if (FrameVars.Get(raycastDef))
             {
                 if (jumpAction.WasPerformedThisFrame())
@@ -187,13 +214,14 @@ public class DreamCharacterController : MonoBehaviour
             }
 
             // Coyote time
-            if (TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.1).Any(_ => jumpAction.WasPerformedThisFrame()))
+            foreach (var _ in TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.1))
             {
-                yield return Jump().AsCoroutine();
-            }
+                if (jumpAction.WasPerformedThisFrame())
+                {
+                    yield return Jump().AsCoroutine();
+                    break;
+                }
 
-            while (!FrameVars.Get(raycastDef))
-            {
                 yield return TimeYields.WaitOneFrameX;
             }
         }
