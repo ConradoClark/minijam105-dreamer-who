@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 168655394}
   - component: {fileID: 168655397}
   - component: {fileID: 168655398}
+  - component: {fileID: 168655399}
   m_Layer: 3
   m_Name: EnemyTest_0
   m_TagString: Untagged
@@ -347,6 +348,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Toolbox: {fileID: 11400000, guid: 6be101aaed455b74893f55ad9c5bf7d0, type: 2}
   SpriteRenderer: {fileID: 168655395}
+--- !u!114 &168655399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 168655393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 884ba4fb1edab6f4792365210dc17fc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FlashOnHit: 1
+  Flash: {fileID: 168655398}
+  Toolbox: {fileID: 11400000, guid: 6be101aaed455b74893f55ad9c5bf7d0, type: 2}
+  Effects: {fileID: 2052972880}
+  HitTypes: 00000000
 --- !u!1 &198937894
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
+using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
+using Licht.Interfaces.Events;
 using Licht.Unity.Builders;
 using Licht.Unity.Extensions;
 using UnityEngine;
@@ -21,15 +21,17 @@ public class DreamCharacterController : MonoBehaviour
 
     private PlayerInput _input;
     private float _refXSpeed;
-    private float _refYSpeed;
 
     public bool CanMove { get; private set; }
     public bool IsJumping { get; private set; }
+
+    private IEventPublisher<HitEvents, HitEventArgs> _hitEventPublisher;
 
     private void OnEnable()
     {
         Toolbox.MainMachinery.Machinery.AddBasicMachine(HandleController());
         _input = PlayerInput.GetPlayerByIndex(0);
+        _hitEventPublisher = this.RegisterAsEventPublisher<HitEvents, HitEventArgs>();
     }
 
     private IEnumerable<IEnumerable<Action>> HandleController()
@@ -82,7 +84,6 @@ public class DreamCharacterController : MonoBehaviour
            .Easing(EasingYields.EasingFunction.QuadraticEaseOut)
            .Build();
     }
-
 
     private IEnumerable<IEnumerable<Action>> HandleMovement()
     {
@@ -160,33 +161,20 @@ public class DreamCharacterController : MonoBehaviour
             }
             Animator.SetFalling(false);
 
-            if (FrameVars.Get(raycastDef) && FrameVars.Get(raycastDef).transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
+            var hit = FrameVars.Get(raycastDef);
+            if (hit && hit.transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
             {
-                // TODO: REMOVE THIS AND USE EVENTS
-                var flash = FrameVars.Get(raycastDef).transform.GetComponent<Flash>();
-                if (flash != null)
+                // Register Fall Hit
+                _hitEventPublisher.PublishEvent(HitEvents.OnHit, new HitEventArgs
                 {
-                    Toolbox.MainMachinery.Machinery.AddBasicMachine(flash.Activate());
-                    Toolbox.MainMachinery.Machinery.AddBasicMachine(SpawnStars(FrameVars.Get(raycastDef)));
-                }
+                    HitType = HitEventType.Fall,
+                    Hit = hit
+                });
 
+                // Bounce
                 var jumpAction = _input.actions[Constants.Actions.Jump];
                 yield return Jump(jumpAction.IsPressed() ? 1.5f : 1.0f).AsCoroutine();
             }
-        }
-    }
-
-    private IEnumerable<IEnumerable<Action>> SpawnStars(RaycastHit2D hit)
-    {
-        var pool = Effects.GetPool(Constants.Effects.BounceEffect);
-        for (var i = 0; i < 3; i++)
-        {
-            if (pool != null && pool.TryGetFromPool(out var obj))
-            {
-                obj.Component.transform.position = hit.point + Random.insideUnitCircle * 0.4f;
-            }
-
-            yield return TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.1f);
         }
     }
 
@@ -207,7 +195,6 @@ public class DreamCharacterController : MonoBehaviour
             .UsingTimer(Toolbox.GameTimer.Timer)
             .Easing(EasingYields.EasingFunction.QuadraticEaseOut)
             .Build();
-        _refYSpeed = 0f;
         IsJumping = false;
         Animator.SetJumping(false);
     }
