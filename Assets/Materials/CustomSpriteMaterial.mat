@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: CustomSpriteMaterial
+  m_Shader: {fileID: 4800000, guid: dda0be183409a8d46a875bdcfcc94b9e, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CutoffTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BumpScale: 1
+    - _ColorReplTolerance1: 0
+    - _ColorReplTolerance2: 0
+    - _ColorReplTolerance3: 0
+    - _ColorReplTolerance4: 0
+    - _ColorReplTolerance5: 0
+    - _Cutoff: 0.5
+    - _CutoffFactor: 1
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _EnableCutoff: 0
+    - _EnableCutoffColorization: 0
+    - _FadeInStripsHorizontal: 0
+    - _FadeInStripsHorizontalProgress: 0
+    - _FadeInStripsHorizontalReverse: 0
+    - _FadeInStripsHorizontalStrips: 1
+    - _FadeInStripsVertical: 0
+    - _FadeInStripsVerticalProgress: 0
+    - _FadeInStripsVerticalReverse: 0
+    - _FadeInStripsVerticalStrips: 1
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _HAutoScroll: 0
+    - _Hue: 0
+    - _InvertInput: 0
+    - _InvertOutput: 0
+    - _LevelsBGamma: 1
+    - _LevelsBMaxInput: 255
+    - _LevelsBMinInput: 0
+    - _LevelsCustom1Gamma: 1
+    - _LevelsCustom1MaxInput: 255
+    - _LevelsCustom1MinInput: 0
+    - _LevelsCustom2Gamma: 1
+    - _LevelsCustom2MaxInput: 255
+    - _LevelsCustom2MinInput: 0
+    - _LevelsCustom3Gamma: 1
+    - _LevelsCustom3MaxInput: 255
+    - _LevelsCustom3MinInput: 0
+    - _LevelsGGamma: 1
+    - _LevelsGMaxInput: 255
+    - _LevelsGMinInput: 0
+    - _LevelsGamma: 1
+    - _LevelsMaxInput: 255
+    - _LevelsMinInput: 0
+    - _LevelsOpacityGradient: 0
+    - _LevelsOpacityGradient2: 0
+    - _LevelsOpacityGradient3: 0
+    - _LevelsOpacityTolerance: 0
+    - _LevelsOpacityTolerance2: 0
+    - _LevelsOpacityTolerance3: 0
+    - _LevelsOpacityValue: 0
+    - _LevelsOpacityValue2: 0
+    - _LevelsOpacityValue3: 0
+    - _LevelsRGamma: 1
+    - _LevelsRMaxInput: 255
+    - _LevelsRMinInput: 0
+    - _Luminance: 0
+    - _Metallic: 0
+    - _Mode: 0
+    - _OcclusionStrength: 1
+    - _Opacity: 1
+    - _Parallax: 0.02
+    - _Saturation: 0
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _UVSec: 0
+    - _VAutoScroll: 0
+    - _ZWrite: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplSource1: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplSource2: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplSource3: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplSource4: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplSource5: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplTarget1: {r: 0, g: 0, b: 0, a: 1}
+    - _ColorReplTarget2: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplTarget3: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplTarget4: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorReplTarget5: {r: 1, g: 1, b: 1, a: 1}
+    - _Colorize: {r: 1, g: 1, b: 1, a: 0}
+    - _CutoffColor15: {r: 0, g: 0, b: 0, a: 0}
+    - _CutoffColor50: {r: 0, g: 0, b: 0, a: 0}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LevelsCustom1Color: {r: 1, g: 1, b: 1, a: 0}
+    - _LevelsCustom2Color: {r: 1, g: 1, b: 1, a: 0}
+    - _LevelsCustom3Color: {r: 1, g: 1, b: 1, a: 0}
+    - _LevelsOpacitySource: {r: 1, g: 1, b: 1, a: 1}
+    - _LevelsOpacitySource2: {r: 1, g: 1, b: 1, a: 1}
+    - _LevelsOpacitySource3: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

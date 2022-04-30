@@ -7,6 +7,7 @@ using Licht.Unity.Builders;
 using Licht.Unity.Extensions;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Random = UnityEngine.Random;
 
 public class DreamCharacterController : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class DreamCharacterController : MonoBehaviour
     public DreamCharacterCollisionDetector CollisionDetector;
     public FrameVariablesUpdater FrameVars;
     public DreamCharacterAnimator Animator;
+
+    public EffectToolbox Effects;
 
     private PlayerInput _input;
     private float _refXSpeed;
@@ -157,11 +160,33 @@ public class DreamCharacterController : MonoBehaviour
             }
             Animator.SetFalling(false);
 
-            if (FrameVars.Get(raycastDef).transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
+            if (FrameVars.Get(raycastDef) && FrameVars.Get(raycastDef).transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
             {
+                // TODO: REMOVE THIS AND USE EVENTS
+                var flash = FrameVars.Get(raycastDef).transform.GetComponent<Flash>();
+                if (flash != null)
+                {
+                    Toolbox.MainMachinery.Machinery.AddBasicMachine(flash.Activate());
+                    Toolbox.MainMachinery.Machinery.AddBasicMachine(SpawnStars(FrameVars.Get(raycastDef)));
+                }
+
                 var jumpAction = _input.actions[Constants.Actions.Jump];
                 yield return Jump(jumpAction.IsPressed() ? 1.5f : 1.0f).AsCoroutine();
             }
+        }
+    }
+
+    private IEnumerable<IEnumerable<Action>> SpawnStars(RaycastHit2D hit)
+    {
+        var pool = Effects.GetPool(Constants.Effects.BounceEffect);
+        for (var i = 0; i < 3; i++)
+        {
+            if (pool != null && pool.TryGetFromPool(out var obj))
+            {
+                obj.Component.transform.position = hit.point + Random.insideUnitCircle * 0.4f;
+            }
+
+            yield return TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.1f);
         }
     }
 

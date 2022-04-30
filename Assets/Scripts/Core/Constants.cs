@@ -11,5 +11,10 @@
         public const string Enemy = "Enemy";
     }
 
+    public static class Effects
+    {
+        public const string BounceEffect = "BounceEffect";
+    }
+
     public const float FrameUpdateMultiplier = 0.005f;
 }
