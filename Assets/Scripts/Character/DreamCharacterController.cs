@@ -156,16 +156,28 @@ public class DreamCharacterController : MonoBehaviour
                 yield return TimeYields.WaitOneFrameX;
             }
             Animator.SetFalling(false);
+
+            if (FrameVars.Get(raycastDef).transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
+            {
+                var jumpAction = _input.actions[Constants.Actions.Jump];
+                yield return Jump(jumpAction.IsPressed() ? 1.5f : 1.0f).AsCoroutine();
+            }
         }
     }
 
-    private IEnumerable<IEnumerable<Action>> Jump()
+    private IEnumerable<IEnumerable<Action>> Jump(float height = 1.5f)
     {
+        if (IsJumping)
+        {
+            yield return TimeYields.WaitOneFrameX;
+            yield break;
+        }
+
         Animator.SetJumping(true);
         IsJumping = true;
         yield return transform.GetAccessor()
             .Position.Y
-            .Increase(1.5f)
+            .Increase(height)
             .Over(0.35f)
             .UsingTimer(Toolbox.GameTimer.Timer)
             .Easing(EasingYields.EasingFunction.QuadraticEaseOut)

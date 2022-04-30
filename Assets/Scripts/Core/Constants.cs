@@ -6,5 +6,10 @@
         public const string Jump = "jump";
     }
 
+    public static class Layers
+    {
+        public const string Enemy = "Enemy";
+    }
+
     public const float FrameUpdateMultiplier = 0.005f;
 }
