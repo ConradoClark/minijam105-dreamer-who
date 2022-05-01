@@ -9,10 +9,12 @@ public class Platform : EffectPoolable
     public float GridWidth;
     public float GridHeight;
 
-    public float Width;
-    public float Height;
+    public int Width;
+    public int Height;
 
     public SpriteRenderer SpriteRenderer;
+
+    public EnemyTag[] AllowsEnemies;
 
     public override void OnActivation()
     {

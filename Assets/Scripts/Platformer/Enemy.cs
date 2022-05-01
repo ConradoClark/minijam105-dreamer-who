@@ -4,13 +4,15 @@ using System.Collections.Generic;
 using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
 using Licht.Unity.Extensions;
+using Licht.Unity.Pooling;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy : EffectPoolable
 {
     public Collider2D Collider;
     public GameToolbox Toolbox;
     public int HitPoints;
+    public EnemyTag[] Tags;
 
     private void OnEnable()
     {
@@ -57,6 +59,12 @@ public class Enemy : MonoBehaviour
             .Build();
 
         yield return RotateAndScaleOnDeath().AsCoroutine().Combine(goUp);
-        gameObject.SetActive(false);
+        IsEffectOver = true;
     }
+
+    public override void OnActivation()
+    {
+    }
+
+    public override bool IsEffectOver { get; protected set; }
 }

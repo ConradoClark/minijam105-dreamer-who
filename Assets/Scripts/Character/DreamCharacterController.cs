@@ -21,6 +21,7 @@ public class DreamCharacterController : MonoBehaviour
 
     private PlayerInput _input;
     private float _refXSpeed;
+    public float PlatformYOffset;
 
     public bool CanMove { get; private set; }
     public bool IsJumping { get; private set; }
@@ -164,9 +165,15 @@ public class DreamCharacterController : MonoBehaviour
                 transform.position = new Vector3(transform.position.x, transform.position.y - 1.75f * updatedTime, transform.position.z);
                 yield return TimeYields.WaitOneFrameX;
             }
-            Animator.SetFalling(false);
 
             var hit = FrameVars.Get(raycastDef);
+            if (hit)
+            {
+                transform.position = new Vector3(transform.position.x, hit.transform.position.y + PlatformYOffset);
+            }
+
+            Animator.SetFalling(false);
+
             if (hit && hit.transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
             {
                 // Register Fall Hit
@@ -178,12 +185,12 @@ public class DreamCharacterController : MonoBehaviour
 
                 // Bounce
                 var jumpAction = _input.actions[Constants.Actions.Jump];
-                yield return Jump(jumpAction.IsPressed() ? 1.5f : 1.0f).AsCoroutine();
+                yield return Jump(jumpAction.IsPressed() ? 1.75f : 1.25f).AsCoroutine();
             }
         }
     }
 
-    private IEnumerable<IEnumerable<Action>> Jump(float height = 1.5f)
+    private IEnumerable<IEnumerable<Action>> Jump(float height = 1.75f)
     {
         if (IsJumping)
         {

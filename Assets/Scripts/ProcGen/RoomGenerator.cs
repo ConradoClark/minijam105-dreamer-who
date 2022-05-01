@@ -29,7 +29,7 @@ public class RoomGenerator : MonoBehaviour
         //Repeat,
         Level,
         Climb,
-        //Fall,
+        Fall,
         Gap,
     }
 
@@ -74,7 +74,7 @@ public class RoomGenerator : MonoBehaviour
 
     public PlatformPool[] Platforms;
     public Sprite[] PlatformSprites;
-    public PrefabPool[] Enemies;
+    public EnemyPool[] Enemies;
 
     public Vector2 PointZero;
     public Vector2 PositionMultiplier;
@@ -82,9 +82,13 @@ public class RoomGenerator : MonoBehaviour
     public int MaximumYDistance;
     public float BonusXDistancePerY;
 
-    private Vector2 _currentPosition;
+    private Vector2Int _currentPosition;
     private DefaultGenerator _rng;
     private float[] _platformColors;
+
+    private Vector2Int _levelSize = new Vector2Int(15, 10);
+
+    private readonly Vector3 _enemyOffset = new Vector3(.5f, .75f);
 
     public class DefaultGenerator : IGenerator<int, float>
     {
@@ -132,15 +136,15 @@ public class RoomGenerator : MonoBehaviour
         {
             platform.SpriteRenderer.material.SetFloat("_Hue", _platformColors.First());
             platform.transform.position = PointZero;
-            _currentPosition = new Vector2(platform.Width, platform.Height - 1);
+            _currentPosition = new Vector2Int(platform.Width, platform.Height - 1);
         }
 
         var intentions = EnumDice<DesignIntention>.GenerateFromEnum();
 
         int attempts = 0;
-        while (_currentPosition.x < 16)
+        while (_currentPosition.x < _levelSize.x)
         {
-            var intentionSelection = new WeightedDice<EnumDice<DesignIntention>>(intentions, _rng);
+            var intentionSelection = new WeightedDice<EnumDice<DesignIntention>>(PickPossibleIntentions(intentions), _rng);
             var result = intentionSelection.Generate();
             GenerateSection(result.Value);
             attempts++;
@@ -148,67 +152,127 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
+    private EnumDice<DesignIntention>[] PickPossibleIntentions(EnumDice<DesignIntention>[] intentions)
+    {
+        return intentions.Where(intention =>
+            {
+                return intention.Value switch
+                {
+                    DesignIntention.Gap => _currentPosition.x < _levelSize.x - 2,
+                    DesignIntention.Level => true,
+                    DesignIntention.Climb => _currentPosition.y < _levelSize.y,
+                    DesignIntention.Fall => _currentPosition.y > 0,
+                    _ => false
+                };
+            }
+        ).ToArray();
+    }
+
+    private PlatformPool[] PickPossiblePlatforms(PlatformPool[] platforms)
+    {
+        return platforms.Where(platformDefinition =>
+            platformDefinition.Platform.Width <= _levelSize.x - _currentPosition.x
+        ).ToArray();
+    }
+
+    private EnemyPool[] PickPossibleEnemies(EnemyPool[] enemies, Platform platform)
+    {
+        return enemies.Where(enemyDefinition => platform.AllowsEnemies.Intersect(enemyDefinition.Enemy.Tags).Count() ==
+                                                enemyDefinition.Enemy.Tags.Length).ToArray();
+    }
+
     private void GenerateSection(DesignIntention intention)
     {
+        var currentPosition = _currentPosition;
+        Platform platform = null;
         switch (intention)
         {
             case DesignIntention.Level:
-                GenerateLeveledSection();
+                platform = GenerateLeveledSection();
                 break;
             case DesignIntention.Climb:
-                GenerateClimbSection();
+                platform = GenerateClimbSection();
+                break;
+            case DesignIntention.Fall:
+                platform = GenerateFallSection();
                 break;
             case DesignIntention.Gap:
-                GenerateGapSection();
+                platform = GenerateGapSection();
                 break;
         }
+
+        if (platform == null) return;
+
+        GenerateEnemies(currentPosition, platform);
+
     }
 
-    private void GenerateGapSection()
+    private void GenerateEnemies(Vector2Int position, Platform platform)
     {
-        var platformSelection = new WeightedDice<PlatformPool>(Platforms, _rng);
-        var pool = platformSelection.Generate();
+        if (platform.AllowsEnemies.Length == 0) return;
 
-        _currentPosition += new Vector2(_rng.GenerateRange(1, MaximumXDistance), 0);
+        // % of enemies based on difficulty?
 
-        if (pool.TryGetPlatform(out var platform))
+        if (_rng.Generate() < 0.75f) return;
+
+        var enemySelection = new WeightedDice<EnemyPool>(PickPossibleEnemies(Enemies, platform), _rng);
+        var pool = enemySelection.Generate();
+
+        if (pool.TryGetEnemy(out var enemy))
         {
-            platform.SpriteRenderer.material.SetFloat("_Hue", _platformColors.First());
-            PutPlatformInPosition(platform);
+            enemy.transform.position = platform.transform.position + _enemyOffset;
         }
     }
 
-
-    private void GenerateClimbSection()
+    private bool TryGeneratePlatform(out Platform platform)
     {
-        var platformSelection = new WeightedDice<PlatformPool>(Platforms, _rng);
+        var platformSelection = new WeightedDice<PlatformPool>(PickPossiblePlatforms(Platforms), _rng);
         var pool = platformSelection.Generate();
-
-        _currentPosition += new Vector2(0, _rng.GenerateRange(1, MaximumYDistance));
-
-        if (pool.TryGetPlatform(out var platform))
+        
+        if (pool.TryGetPlatform(out platform))
         {
             platform.SpriteRenderer.material.SetFloat("_Hue", _platformColors.First());
-            PutPlatformInPosition(platform);
+            return true;
         }
+
+        platform = null;
+        return false;
     }
 
-    private void GenerateLeveledSection()
+    private Platform GenerateGapSection()
     {
-        var platformSelection = new WeightedDice<PlatformPool>(Platforms, _rng);
-        var pool = platformSelection.Generate();
+        if (!TryGeneratePlatform(out var platform)) return null;
+        _currentPosition += new Vector2Int(_rng.GenerateRange(1, MaximumXDistance), 0);
+        PutPlatformInPosition(platform);
+        return platform;
+    }
+    private Platform GenerateClimbSection()
+    {
+        if (!TryGeneratePlatform(out var platform)) return null;
+        _currentPosition += new Vector2Int(0, _rng.GenerateRange(1, Mathf.Min(_levelSize.y - _currentPosition.y, MaximumYDistance)));
+        PutPlatformInPosition(platform);
+        return platform;
+    }
 
-        if (pool.TryGetPlatform(out var platform))
-        {
-            platform.SpriteRenderer.material.SetFloat("_Hue", _platformColors.First());
-            PutPlatformInPosition(platform);
-        }
+    private Platform GenerateFallSection()
+    {
+        if (!TryGeneratePlatform(out var platform)) return null;
+        _currentPosition -= new Vector2Int(0, _rng.GenerateRange(1, Mathf.Min(_currentPosition.y, MaximumYDistance)));
+        PutPlatformInPosition(platform);
+        return platform;
+    }
+
+    private Platform GenerateLeveledSection()
+    {
+        if (!TryGeneratePlatform(out var platform)) return null;
+        PutPlatformInPosition(platform);
+        return platform;
     }
 
     private void PutPlatformInPosition(Platform platform)
     {
         platform.transform.position = PointZero + _currentPosition * PositionMultiplier;
-        _currentPosition += new Vector2( platform.Width, platform.Height - 1);
+        _currentPosition += new Vector2Int( platform.Width, platform.Height - 1);
     }
 
 }

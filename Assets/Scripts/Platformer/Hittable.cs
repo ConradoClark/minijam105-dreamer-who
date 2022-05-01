@@ -23,6 +23,7 @@ public class Hittable : MonoBehaviour
 
     private void OnEnable()
     {
+        Effects = Effects != null ? Effects : FindObjectOfType<EffectToolbox>();
         this.ObserveEvent<HitEvents, HitEventArgs>(HitEvents.OnHit, OnEvent);
         _damageEventPublisher = this.RegisterAsEventPublisher<HitEvents, DamageEventArgs>();
     }
