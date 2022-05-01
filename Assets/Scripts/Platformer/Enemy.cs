@@ -23,11 +23,9 @@ public class Enemy : MonoBehaviour
         if (HitPoints == 0 || obj.Source.gameObject != gameObject) return;
         HitPoints--;
 
-        if (HitPoints == 0)
-        {
-            Collider.enabled = false;
-            Toolbox.MainMachinery.Machinery.AddBasicMachine(Die());
-        }
+        if (HitPoints != 0) return;
+        Collider.enabled = false;
+        Toolbox.MainMachinery.Machinery.AddBasicMachine(Die());
     }
 
     private void OnDisable()
@@ -44,16 +42,15 @@ public class Enemy : MonoBehaviour
                      .Easing(EasingYields.EasingFunction.CubicEaseOut)
                      .Build())
         {
-            transform.Rotate(Vector3.forward, 30f);
+            transform.Rotate(Vector3.forward, 50f);
             yield return TimeYields.WaitOneFrameX;
         }
-
     }
 
     private IEnumerable<IEnumerable<Action>> Die()
     {
         var goUp = transform.GetAccessor().Position.Y
-            .Increase(3f)
+            .Increase(1f)
             .Over(1f)
             .UsingTimer(Toolbox.GameTimer.Timer)
             .Easing(EasingYields.EasingFunction.CubicEaseOut)
