@@ -20,6 +20,7 @@ public class Enemy : EffectPoolable
     private IEventPublisher<TimerEvents, TimerChangedEventArgs> _eventPublisher;
 
     public AudioSource HitSound;
+    public ScriptableHighScore Score;
 
     private void OnEnable()
     {
@@ -38,6 +39,8 @@ public class Enemy : EffectPoolable
 
         if (_currentHitPoints != 0) return;
         Collider.enabled = false;
+
+        Score.EnemiesKilled++;
 
         _eventPublisher.PublishEvent(TimerEvents.OnTimerChanged, new TimerChangedEventArgs
         {

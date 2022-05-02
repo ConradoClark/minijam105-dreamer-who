@@ -1203,6 +1203,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Toolbox: {fileID: 11400000, guid: 6be101aaed455b74893f55ad9c5bf7d0, type: 2}
+  Score: {fileID: 11400000, guid: 50669612f38a5084c86a0648e2349f92, type: 2}
 --- !u!1 &1938598787
 GameObject:
   m_ObjectHideFlags: 0

@@ -49,7 +49,7 @@ public class GameTimerText : MonoBehaviour
 
             _text.text = "Time Up!";
 
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 15; i++)
             {
                 _text.enabled = !_text.enabled;
                 yield return TimeYields.WaitMilliseconds(Toolbox.GameTimer.Timer, 100);

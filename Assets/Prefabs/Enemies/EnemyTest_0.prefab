@@ -314,3 +314,4 @@ MonoBehaviour:
   Tags: 00000000
   BonusTime: 1
   HitSound: {fileID: 4663739743072793287}
+  Score: {fileID: 11400000, guid: 50669612f38a5084c86a0648e2349f92, type: 2}

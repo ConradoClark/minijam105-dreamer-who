@@ -36,6 +36,8 @@ public class DreamCharacterController : MonoBehaviour
     public AudioSource NextLevelSound;
     public AudioSource JumpSound;
 
+    public ScriptableHighScore Score;
+
     private IEventPublisher<HitEvents, HitEventArgs> _hitEventPublisher;
     private IEventPublisher<CharacterEvents> _charEventsPublisher;
     private IEventPublisher<TimerEvents, TimerChangedEventArgs> _timerEventPublisher;
@@ -52,6 +54,7 @@ public class DreamCharacterController : MonoBehaviour
     private void OnDisable()
     {
         this.UnregisterAsEventPublisher<HitEvents, HitEventArgs>();
+        this.UnregisterAsEventPublisher<TimerEvents, TimerChangedEventArgs>();
     }
 
     private IEnumerable<IEnumerable<Action>> HandleController()
@@ -305,6 +308,8 @@ public class DreamCharacterController : MonoBehaviour
                 transform.position = new Vector3(-7f, transform.position.y);
 
                 NextLevelSound.Play();
+
+                Score.LevelsBeaten++;
 
                 _timerEventPublisher.PublishEvent(TimerEvents.OnTimerChanged, new TimerChangedEventArgs
                 {

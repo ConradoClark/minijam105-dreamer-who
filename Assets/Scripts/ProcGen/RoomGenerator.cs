@@ -135,6 +135,8 @@ public class RoomGenerator : MonoBehaviour
 
     private void OnExitedMap()
     {
+        if (Platforms.Any(p => p == null)) return;
+
         foreach (var platformPool in Platforms)
         {
             platformPool.ReleaseAll();

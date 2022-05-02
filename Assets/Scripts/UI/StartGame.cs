@@ -14,6 +14,8 @@ public class StartGame : MonoBehaviour
     public GameToolbox Toolbox;
     private bool _mButtonPressed;
 
+    public ScriptableHighScore Score;
+
     private bool _started = false;
     // Start is called before the first frame update
     void Start()
@@ -47,6 +49,9 @@ public class StartGame : MonoBehaviour
             if (_mButtonPressed && !_started)
             {
                 _started = true;
+
+                Score.EnemiesKilled = 0;
+                Score.LevelsBeaten = 0;
 
                 Toolbox.MainMachinery.Machinery.FinalizeWith(() =>
                 {
