@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Licht.Impl.Events;
 using Licht.Impl.Generation;
+using Licht.Interfaces.Events;
 using Licht.Interfaces.Generation;
 using Licht.Unity.Pooling;
 using UnityEngine;
@@ -86,9 +88,12 @@ public class RoomGenerator : MonoBehaviour
     private DefaultGenerator _rng;
     private float[] _platformColors;
 
-    private Vector2Int _levelSize = new Vector2Int(15, 10);
+    private Vector2Int _levelSize = new Vector2Int(15, 5);
 
     private readonly Vector3 _enemyOffset = new Vector3(.5f, .75f);
+
+    private IEventPublisher<RoomEvents, RoomEventArgs> _roomEventPublisher;
+    private List<string> _seeds = new List<string>();
 
     public class DefaultGenerator : IGenerator<int, float>
     {
@@ -112,13 +117,59 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
+        if (!string.IsNullOrWhiteSpace(Seed)) _seeds.Add(Seed);
+        this.ObserveEvent(CharacterEvents.ExitedMap, OnExitedMap);
+        _roomEventPublisher = this.RegisterAsEventPublisher<RoomEvents, RoomEventArgs>();
         GenerateRoom();
+    }
+
+    private void OnDisable()
+    {
+        this.StopObservingEvent(CharacterEvents.ExitedMap, OnExitedMap);
+        this.UnregisterAsEventPublisher<RoomEvents, RoomEventArgs>();
+    }
+
+    private void OnExitedMap()
+    {
+        foreach (var platformPool in Platforms)
+        {
+            platformPool.ReleaseAll();
+        }
+
+        foreach (var enemyPool in Enemies)
+        {
+            enemyPool.ReleaseAll();
+        }
+
+        Seed = GenerateSeed();
+        GenerateRoom();
+    }
+
+    private string GenerateSeed()
+    {
+        var seed = new string(new[]
+        {
+            (char)_rng.GenerateRange(65, 90),
+            (char)_rng.GenerateRange(65, 90),
+            (char)_rng.GenerateRange(65, 90),
+            (char)_rng.GenerateRange(65, 90),
+            ' ',
+            (char)_rng.GenerateRange(65, 90),
+            (char)_rng.GenerateRange(65, 90),
+            (char)_rng.GenerateRange(65, 90),
+            (char)_rng.GenerateRange(65, 90),
+        });
+
+        _seeds.Add(seed);
+
+        return seed;
     }
 
     public void GenerateRoom()
     {
+        _roomEventPublisher.PublishEvent(RoomEvents.OnRoomGenerated, new RoomEventArgs { Seed = Seed });
         _rng = new DefaultGenerator(Seed);
 
         _platformColors = Enumerable.Range(0, 5).Select(_ => _rng.Generate() * 255f).ToArray();
@@ -203,24 +254,35 @@ public class RoomGenerator : MonoBehaviour
 
         if (platform == null) return;
 
-        GenerateEnemies(currentPosition, platform);
+        GenerateEnemies(currentPosition, platform, intention);
 
     }
 
-    private void GenerateEnemies(Vector2Int position, Platform platform)
+    private void GenerateEnemies(Vector2Int position, Platform platform, DesignIntention intention)
     {
         if (platform.AllowsEnemies.Length == 0) return;
 
         // % of enemies based on difficulty?
 
-        if (_rng.Generate() < 0.75f) return;
+        if (_rng.Generate() < 0.60f) return;
 
         var enemySelection = new WeightedDice<EnemyPool>(PickPossibleEnemies(Enemies, platform), _rng);
+        var possiblePositions = Enumerable.Range(0, platform.Width);
+
+        var skipFirst = false;
+        // Cannot kill enemies that are 3 levels higher
+        if (platform.Step == 2 && intention == DesignIntention.Climb)
+        {
+            skipFirst = true;
+            if (platform.Width == 1) return;
+        }
+
         var pool = enemySelection.Generate();
 
         if (pool.TryGetEnemy(out var enemy))
         {
-            enemy.transform.position = platform.transform.position + _enemyOffset;
+            var skip = _rng.GenerateRange(skipFirst ? 1 : 0, platform.Width - 1);
+            enemy.transform.position = platform.transform.position + _enemyOffset + new Vector3(skip, 0);
         }
     }
 
@@ -228,7 +290,7 @@ public class RoomGenerator : MonoBehaviour
     {
         var platformSelection = new WeightedDice<PlatformPool>(PickPossiblePlatforms(Platforms), _rng);
         var pool = platformSelection.Generate();
-        
+
         if (pool.TryGetPlatform(out platform))
         {
             platform.SpriteRenderer.material.SetFloat("_Hue", _platformColors.First());
@@ -249,7 +311,9 @@ public class RoomGenerator : MonoBehaviour
     private Platform GenerateClimbSection()
     {
         if (!TryGeneratePlatform(out var platform)) return null;
-        _currentPosition += new Vector2Int(0, _rng.GenerateRange(1, Mathf.Min(_levelSize.y - _currentPosition.y, MaximumYDistance)));
+        var step = _rng.GenerateRange(1, Mathf.Min(_levelSize.y - _currentPosition.y, MaximumYDistance));
+        platform.Step = step;
+        _currentPosition += new Vector2Int(0, step);
         PutPlatformInPosition(platform);
         return platform;
     }
@@ -272,7 +336,7 @@ public class RoomGenerator : MonoBehaviour
     private void PutPlatformInPosition(Platform platform)
     {
         platform.transform.position = PointZero + _currentPosition * PositionMultiplier;
-        _currentPosition += new Vector2Int( platform.Width, platform.Height - 1);
+        _currentPosition += new Vector2Int(platform.Width, platform.Height - 1);
     }
 
 }

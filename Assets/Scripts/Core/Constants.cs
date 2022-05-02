@@ -14,6 +14,7 @@
     public static class Effects
     {
         public const string BounceEffect = "BounceEffect";
+        public const string PopupTimer = "PopupTimer";
     }
 
     public const float FrameUpdateMultiplier = 0.005f;

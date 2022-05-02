@@ -15,6 +15,7 @@ public class Platform : EffectPoolable
     public SpriteRenderer SpriteRenderer;
 
     public EnemyTag[] AllowsEnemies;
+    public int Step;
 
     public override void OnActivation()
     {
