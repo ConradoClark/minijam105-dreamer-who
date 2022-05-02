@@ -5,6 +5,7 @@ using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(TMP_Text))]
 public class GameTimerText : MonoBehaviour
@@ -47,6 +48,17 @@ public class GameTimerText : MonoBehaviour
             }
 
             _text.text = "Time Up!";
+
+            for (var i = 0; i < 5; i++)
+            {
+                _text.enabled = !_text.enabled;
+                yield return TimeYields.WaitMilliseconds(Toolbox.GameTimer.Timer, 100);
+            }
+
+            Toolbox.MainMachinery.Machinery.FinalizeWith(() =>
+            {
+                SceneManager.LoadScene("Scenes/Results", LoadSceneMode.Single);
+            });
 
             yield return TimeYields.WaitOneFrameX;
         }

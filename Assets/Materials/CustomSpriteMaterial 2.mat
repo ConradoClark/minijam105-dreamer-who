@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CustomSpriteMaterial
+  m_Name: CustomSpriteMaterial 2
   m_Shader: {fileID: 4800000, guid: dda0be183409a8d46a875bdcfcc94b9e, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -142,7 +142,7 @@ Material:
     - _ColorReplTarget3: {r: 1, g: 1, b: 1, a: 1}
     - _ColorReplTarget4: {r: 1, g: 1, b: 1, a: 1}
     - _ColorReplTarget5: {r: 1, g: 1, b: 1, a: 1}
-    - _Colorize: {r: 0.98564005, g: 0, b: 1, a: 0}
+    - _Colorize: {r: 1, g: 1, b: 1, a: 0}
     - _CutoffColor15: {r: 0, g: 0, b: 0, a: 0}
     - _CutoffColor50: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

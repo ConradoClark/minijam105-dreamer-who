@@ -122,6 +122,8 @@ public class RoomGenerator : MonoBehaviour
         if (!string.IsNullOrWhiteSpace(Seed)) _seeds.Add(Seed);
         this.ObserveEvent(CharacterEvents.ExitedMap, OnExitedMap);
         _roomEventPublisher = this.RegisterAsEventPublisher<RoomEvents, RoomEventArgs>();
+
+        Seed = GenerateSeed();
         GenerateRoom();
     }
 
@@ -149,8 +151,10 @@ public class RoomGenerator : MonoBehaviour
 
     private string GenerateSeed()
     {
+        _rng ??= new DefaultGenerator(DateTime.Now.Ticks.ToString());
+
         var seed = new string(new[]
-        {
+            {
             (char)_rng.GenerateRange(65, 90),
             (char)_rng.GenerateRange(65, 90),
             (char)_rng.GenerateRange(65, 90),

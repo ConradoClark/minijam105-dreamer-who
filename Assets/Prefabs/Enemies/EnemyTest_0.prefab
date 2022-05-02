@@ -43,7 +43,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 948d09e44be99564282e12389315fa6a, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.603
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -312,5 +312,5 @@ MonoBehaviour:
   Toolbox: {fileID: 11400000, guid: 6be101aaed455b74893f55ad9c5bf7d0, type: 2}
   HitPoints: 1
   Tags: 00000000
-  BonusTime: 2
+  BonusTime: 1
   HitSound: {fileID: 4663739743072793287}
