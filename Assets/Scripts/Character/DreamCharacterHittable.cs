@@ -6,27 +6,30 @@ using System.Threading.Tasks;
 using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
 using Licht.Interfaces.Events;
+using Licht.Unity.CharacterControllers;
 using Licht.Unity.Extensions;
+using Licht.Unity.Objects;
+using Licht.Unity.Physics;
+using Licht.Unity.Physics.CollisionDetection;
 using UnityEngine;
 
-[RequireComponent(typeof(DreamCharacterCollisionDetector))]
-[RequireComponent(typeof(DreamCharacterController))]
 [RequireComponent(typeof(SpriteRenderer))]
-public class DreamCharacterHittable : MonoBehaviour
+public class DreamCharacterHittable : BaseGameObject
 {
     public float YLimit;
     public int FallDamage;
 
-    private FrameVariablesUpdater _frameVars;
-    private DreamCharacterCollisionDetector _collisionDetector;
-    private DreamCharacterController _controller;
+    public LichtPhysicsObject PhysicsObject;
+    public ScriptIdentifier Grounded;
+    public LichtPhysicsCollisionDetector HitBox;
+    public LichtPhysicsCollisionDetector BounceDetector;
+    public LichtPlatformerJumpController JumpController;
+    public LichtPlatformerMoveController MoveController;
     private SpriteRenderer _spriteRenderer;
     private EffectToolbox _effectToolbox;
 
     private IEventPublisher<TimerEvents, TimerChangedEventArgs> _eventPublisher;
     private Vector3 _originalPosition;
-
-    public GameToolbox Toolbox;
 
     public AudioSource HitDamageSound;
 
@@ -35,22 +38,12 @@ public class DreamCharacterHittable : MonoBehaviour
         _originalPosition = transform.position;
         _effectToolbox = _effectToolbox != null ? _effectToolbox : FindObjectOfType<EffectToolbox>();
 
-        _collisionDetector = _collisionDetector != null
-            ? _collisionDetector
-            : GetComponent<DreamCharacterCollisionDetector>();
-
-        _controller = _controller != null
-            ? _controller
-            : GetComponent<DreamCharacterController>();
-
         _spriteRenderer = _spriteRenderer != null ? _spriteRenderer : GetComponent<SpriteRenderer>();
-
-        _frameVars = _frameVars != null ? _frameVars : FindObjectOfType<FrameVariablesUpdater>();
 
         _eventPublisher = this.RegisterAsEventPublisher<TimerEvents, TimerChangedEventArgs>();
 
-         Toolbox.MainMachinery.Machinery.AddBasicMachine(HandleEnemyCollision());
-         Toolbox.MainMachinery.Machinery.AddBasicMachine(HandleOutOfBounds());
+         DefaultMachinery.AddBasicMachine(HandleEnemyCollision());
+         DefaultMachinery.AddBasicMachine(HandleOutOfBounds());
     }
 
     private void OnDisable()
@@ -62,10 +55,10 @@ public class DreamCharacterHittable : MonoBehaviour
     {
         while (isActiveAndEnabled)
         {
-            var col = _collisionDetector.HandleCollision(DreamCharacterCollisionDetector.CharacterColliders.Horizontal,
-                new Vector2(_controller.Direction * 0.1f, 0), 1);
+            var bouncing = BounceDetector.Triggers.FirstOrDefault();
+            var hitbox = HitBox.Triggers.FirstOrDefault();
 
-            if (!_controller.IsFalling && col && col.transform.gameObject.layer == LayerMask.NameToLayer(Constants.Layers.Enemy))
+            if (hitbox.TriggeredHit && (JumpController.IsJumping || !bouncing.TriggeredHit || PhysicsObject.GetPhysicsTrigger(Grounded)))
             {
                 HitDamageSound.Play();
                 const int damage = -2;
@@ -73,46 +66,38 @@ public class DreamCharacterHittable : MonoBehaviour
                 {
                     AmountInSeconds = damage
                 });
-                var dir = -_controller.Direction;
+                var dir = -MoveController.LatestDirection;
                 var delay = 50f;
 
                 if (_effectToolbox.GetPool(Constants.Effects.PopupTimer).TryGetFromPool(out var popup) && popup is TimerEffect effect)
                 {
-                    effect.transform.position = col.point + Vector2.up;
-                    Toolbox.MainMachinery.Machinery.AddBasicMachine(effect.Popup(damage));
+                    effect.transform.position = hitbox.Hit.point + Vector2.up;
+                    DefaultMachinery.AddBasicMachine(effect.Popup(damage));
                 }
 
-                _controller.StartRecoil();
+                MoveController.BlockMovement(this);
 
-                var horizontalRecoil = _controller.transform.GetAccessor()
-                    .Position.X
-                    .Increase(1.1f * -_controller.Direction)
+                var horizontalRecoil = PhysicsObject.GetSpeedAccessor()
+                    .X
+                    .Increase(0.8f * dir)
                     .Over(0.2f)
                     .Easing(EasingYields.EasingFunction.CubicEaseOut)
-                    .UsingTimer(Toolbox.GameTimer.Timer)
+                    .UsingTimer(GameTimer)
                     .Build();
 
-                var verticalRecoil = _controller.transform.GetAccessor()
-                    .Position.Y
-                    .Increase(0.5f)
+                var verticalRecoil = PhysicsObject.GetSpeedAccessor()
+                    .Y
+                    .Increase(0.25f)
                     .Over(0.2f)
                     .Easing(EasingYields.EasingFunction.CubicEaseOut)
-                    .UsingTimer(Toolbox.GameTimer.Timer)
+                    .UsingTimer(GameTimer)
                     .Build();
 
-                Toolbox.MainMachinery.Machinery.AddBasicMachine(Flash());
+                DefaultMachinery.AddBasicMachine(Flash());
 
-                foreach (var _ in horizontalRecoil.Combine(verticalRecoil))
-                {
-                    delay -= (float) Toolbox.GameTimer.Timer.UpdatedTimeInMilliseconds;
-                    if (delay <= 0 && _collisionDetector.HandleCollision(DreamCharacterCollisionDetector.CharacterColliders.Horizontal,
-                            new Vector2(dir * 0.1f, 0),1))
-                    {
-                        break;
-                    }
-                    yield return TimeYields.WaitOneFrameX;
-                }
-                _controller.EndRecoil();
+                yield return horizontalRecoil.Combine(verticalRecoil);
+
+                MoveController.UnblockMovement(this);
             }
 
             yield return TimeYields.WaitOneFrameX;
@@ -134,7 +119,7 @@ public class DreamCharacterHittable : MonoBehaviour
             if (_effectToolbox.GetPool(Constants.Effects.PopupTimer).TryGetFromPool(out var popup) && popup is TimerEffect effect)
             {
                 effect.transform.position = transform.position + Vector3.up;
-                Toolbox.MainMachinery.Machinery.AddBasicMachine(effect.Popup(-FallDamage));
+                DefaultMachinery.AddBasicMachine(effect.Popup(-FallDamage));
             }
 
             transform.position = _originalPosition;
@@ -149,7 +134,7 @@ public class DreamCharacterHittable : MonoBehaviour
         for (var i = 0; i < 6; i++)
         {
             _spriteRenderer.enabled = !_spriteRenderer.enabled;
-            yield return TimeYields.WaitMilliseconds(Toolbox.GameTimer.Timer, 100);
+            yield return TimeYields.WaitMilliseconds(GameTimer, 100);
         }
         _spriteRenderer.enabled = true;
     }

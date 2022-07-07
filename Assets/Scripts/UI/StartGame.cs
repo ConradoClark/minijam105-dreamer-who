@@ -3,15 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Licht.Impl.Orchestration;
+using Licht.Unity.Objects;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 
-public class StartGame : MonoBehaviour
+public class StartGame : BaseGameObject
 {
-    public GameToolbox Toolbox;
     private bool _mButtonPressed;
 
     public ScriptableHighScore Score;
@@ -37,12 +37,12 @@ public class StartGame : MonoBehaviour
                     break;
                 }
             };
-        Toolbox.MainMachinery.Machinery.AddBasicMachine(Finalize());
+        DefaultMachinery.AddBasicMachine(EndGame());
     }
 
-    IEnumerable<IEnumerable<Action>> Finalize()
+    IEnumerable<IEnumerable<Action>> EndGame()
     {
-        yield return TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.35);
+        yield return TimeYields.WaitSeconds(GameTimer, 0.35);
 
         while (isActiveAndEnabled)
         {
@@ -53,7 +53,7 @@ public class StartGame : MonoBehaviour
                 Score.EnemiesKilled = 0;
                 Score.LevelsBeaten = 0;
 
-                Toolbox.MainMachinery.Machinery.FinalizeWith(() =>
+                DefaultMachinery.FinalizeWith(() =>
                 {
                     SceneManager.LoadScene("Scenes/MainGame", LoadSceneMode.Single);
                 });

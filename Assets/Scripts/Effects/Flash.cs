@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using Licht.Impl.Orchestration;
 using Licht.Unity.Builders;
+using Licht.Unity.Objects;
 using UnityEngine;
 
-public class Flash : MonoBehaviour
+public class Flash : BaseGameObject
 {
-    public GameToolbox Toolbox;
     public SpriteRenderer SpriteRenderer;
 
     public IEnumerable<IEnumerable<Action>> Activate()
@@ -16,7 +16,7 @@ public class Flash : MonoBehaviour
                 () => SpriteRenderer.material.GetFloat("_Luminance"))
             .SetTarget(1f)
             .Over(0.25f)
-            .UsingTimer(Toolbox.GameTimer.Timer)
+            .UsingTimer(GameTimer)
             .Easing(EasingYields.EasingFunction.CubicEaseOut)
             .Build();
 
@@ -24,7 +24,7 @@ public class Flash : MonoBehaviour
                 () => SpriteRenderer.material.GetFloat("_Luminance"))
             .SetTarget(0f)
             .Over(0.15f)
-            .UsingTimer(Toolbox.GameTimer.Timer)
+            .UsingTimer(GameTimer)
             .Easing(EasingYields.EasingFunction.CubicEaseIn)
             .Build();
     }

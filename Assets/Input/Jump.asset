@@ -9,6 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1337169780, guid: 7b3fa964f65ea784fb63e20c2d537911, type: 3}
-  m_Name: MainMachinery
+  m_Script: {fileID: -874139478, guid: 7b3fa964f65ea784fb63e20c2d537911, type: 3}
+  m_Name: Jump
   m_EditorClassIdentifier: 
+  ActionName: Jump

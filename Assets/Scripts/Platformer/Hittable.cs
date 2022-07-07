@@ -1,19 +1,18 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
 using Licht.Interfaces.Events;
+using Licht.Unity.Objects;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Hittable : MonoBehaviour
+public class Hittable : BaseGameObject
 {
     public bool TakesDamage;
     public bool FlashOnHit;
     public Flash Flash;
-    public GameToolbox Toolbox;
     public EffectToolbox Effects;
     public Collider2D Collider;
     public Transform Source;
@@ -37,7 +36,7 @@ public class Hittable : MonoBehaviour
     {
         if (!FlashOnHit || !HitTypes.Contains(obj.HitType) || obj.Hit.collider != Collider) return;
         
-        Toolbox.MainMachinery.Machinery.AddBasicMachine(
+        DefaultMachinery.AddBasicMachine(
             Flash.Activate().AsCoroutine().Combine(SpawnStars(obj.Hit).AsCoroutine()));
 
         if (TakesDamage)
@@ -61,7 +60,7 @@ public class Hittable : MonoBehaviour
                 obj.Component.transform.position = hit.point + Random.insideUnitCircle * 0.4f;
             }
 
-            yield return TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 0.1f);
+            yield return TimeYields.WaitSeconds(GameTimer, 0.1f);
         }
     }
 }

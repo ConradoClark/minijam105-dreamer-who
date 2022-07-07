@@ -3,15 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using Licht.Impl.Events;
 using Licht.Impl.Orchestration;
+using Licht.Unity.Objects;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(TMP_Text))]
-public class GameTimerText : MonoBehaviour
+public class GameTimerText : BaseGameObject
 {
     public float StartingTimer;
-    public GameToolbox Toolbox;
     private TMP_Text _text;
 
     private float _timer;
@@ -19,7 +19,7 @@ public class GameTimerText : MonoBehaviour
     private void OnEnable()
     {
         _text = _text != null ? _text : GetComponent<TMP_Text>();
-        Toolbox.MainMachinery.Machinery.AddBasicMachine(HandleTimer());
+        DefaultMachinery.AddBasicMachine(HandleTimer());
         this.ObserveEvent<TimerEvents,TimerChangedEventArgs>(TimerEvents.OnTimerChanged, OnEvent);
     }
 
@@ -43,7 +43,7 @@ public class GameTimerText : MonoBehaviour
                 var timeSpan = TimeSpan.FromSeconds(_timer);
                 _text.text = timeSpan.ToString("mm':'ss'.'fff");
 
-                _timer -= (float)Toolbox.GameTimer.Timer.UpdatedTimeInMilliseconds * 0.001f;
+                _timer -= (float)GameTimer.UpdatedTimeInMilliseconds * 0.001f;
                 yield return TimeYields.WaitOneFrameX;
             }
 
@@ -52,10 +52,10 @@ public class GameTimerText : MonoBehaviour
             for (var i = 0; i < 15; i++)
             {
                 _text.enabled = !_text.enabled;
-                yield return TimeYields.WaitMilliseconds(Toolbox.GameTimer.Timer, 100);
+                yield return TimeYields.WaitMilliseconds(GameTimer, 100);
             }
 
-            Toolbox.MainMachinery.Machinery.FinalizeWith(() =>
+            DefaultMachinery.FinalizeWith(() =>
             {
                 SceneManager.LoadScene("Scenes/Results", LoadSceneMode.Single);
             });

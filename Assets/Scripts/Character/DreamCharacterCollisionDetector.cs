@@ -13,7 +13,6 @@ public class DreamCharacterCollisionDetector : MonoBehaviour
         Vertical
     }
 
-    public GameToolbox Toolbox;
     public Collider2D HorizontalCollider;
     public Collider2D VerticalCollider;
 

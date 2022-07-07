@@ -3,15 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Licht.Impl.Orchestration;
+using Licht.Unity.Objects;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 
-public class GoToMenu : MonoBehaviour
+public class GoToMenu : BaseGameObject
 {
-    public GameToolbox Toolbox;
     private bool _mButtonPressed;
 
     private bool _started = false;
@@ -35,12 +35,12 @@ public class GoToMenu : MonoBehaviour
                     break;
                 }
             };
-        Toolbox.MainMachinery.Machinery.AddBasicMachine(Finalize());
+        DefaultMachinery.AddBasicMachine(Finalize());
     }
 
     IEnumerable<IEnumerable<Action>> Finalize()
     {
-        yield return TimeYields.WaitSeconds(Toolbox.GameTimer.Timer, 2);
+        yield return TimeYields.WaitSeconds(GameTimer, 2);
 
         while (isActiveAndEnabled)
         {
@@ -48,7 +48,7 @@ public class GoToMenu : MonoBehaviour
             {
                 _started = true;
 
-                Toolbox.MainMachinery.Machinery.FinalizeWith(() =>
+                DefaultMachinery.FinalizeWith(() =>
                 {
                     SceneManager.LoadScene("Scenes/Menu", LoadSceneMode.Single);
                 });

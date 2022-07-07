@@ -11,7 +11,6 @@ using UnityEngine;
 public class Enemy : EffectPoolable
 {
     public Collider2D Collider;
-    public GameToolbox Toolbox;
     public int HitPoints;
     private int _currentHitPoints;
     public EnemyTag[] Tags;
@@ -50,10 +49,10 @@ public class Enemy : EffectPoolable
         if (_effects.GetPool(Constants.Effects.PopupTimer).TryGetFromPool(out var popup) && popup is TimerEffect effect)
         {
             effect.transform.position = transform.position + Vector3.up;
-            Toolbox.MainMachinery.Machinery.AddBasicMachine(effect.Popup(BonusTime));
+            DefaultMachinery.AddBasicMachine(effect.Popup(BonusTime));
         }
 
-        Toolbox.MainMachinery.Machinery.AddBasicMachine(Die());
+        DefaultMachinery.AddBasicMachine(Die());
     }
 
     private void OnDisable()
@@ -66,7 +65,7 @@ public class Enemy : EffectPoolable
         foreach (var _ in transform.GetAccessor().UniformScale()
                      .SetTarget(0f)
                      .Over(1f)
-                     .UsingTimer(Toolbox.GameTimer.Timer)
+                     .UsingTimer(GameTimer)
                      .Easing(EasingYields.EasingFunction.CubicEaseOut)
                      .Build())
         {
@@ -80,7 +79,7 @@ public class Enemy : EffectPoolable
         var goUp = transform.GetAccessor().Position.Y
             .Increase(1f)
             .Over(1f)
-            .UsingTimer(Toolbox.GameTimer.Timer)
+            .UsingTimer(GameTimer)
             .Easing(EasingYields.EasingFunction.CubicEaseOut)
             .Build();
 

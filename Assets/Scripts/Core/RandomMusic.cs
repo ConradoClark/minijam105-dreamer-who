@@ -2,22 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Licht.Impl.Orchestration;
+using Licht.Unity.Objects;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class RandomMusic : MonoBehaviour
+public class RandomMusic : BaseGameObject
 {
-    public GameToolbox Toolbox;
     public AudioSource Source;
     public AudioClip[] Songs;
     void OnEnable()
     {
-        Toolbox.MainMachinery.Machinery.AddBasicMachine(Play());
+        DefaultMachinery.AddBasicMachine(Play());
     }
 
     IEnumerable<IEnumerable<Action>> Play()
     {
-
         while (isActiveAndEnabled)
         {
             var song = Random.Range(0, Songs.Length);

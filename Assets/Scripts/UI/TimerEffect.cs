@@ -13,7 +13,6 @@ using Random = UnityEngine.Random;
 public class TimerEffect : EffectPoolable
 {
     public TMP_Text TextComponent;
-    public GameToolbox Toolbox;
     public override void OnActivation()
     {
         TextComponent.color = Color.white;
@@ -31,7 +30,7 @@ public class TimerEffect : EffectPoolable
             .Position.Y
             .Increase(1f)
             .Over(1f)
-            .UsingTimer(Toolbox.GameTimer.Timer)
+            .UsingTimer(GameTimer)
             .Build();
 
         yield return up.Combine(RandomizeColor(value).AsCoroutine());
@@ -44,7 +43,7 @@ public class TimerEffect : EffectPoolable
         for (var i = 0; i < 10; i++)
         {
             TextComponent.color = Color.HSVToRGB(GetHue(value), 1f, 0.4f + Random.value * 0.25f);
-            yield return TimeYields.WaitMilliseconds(Toolbox.GameTimer.Timer, 80);
+            yield return TimeYields.WaitMilliseconds(GameTimer, 80);
         }
 
         TextComponent.color = Color.white;
@@ -54,7 +53,7 @@ public class TimerEffect : EffectPoolable
             .SetTarget(0f)
             .Over(0.15f)
             .Easing(EasingYields.EasingFunction.QuadraticEaseIn)
-            .UsingTimer(Toolbox.GameTimer.Timer)
+            .UsingTimer(GameTimer)
             .Build();
     }
 
